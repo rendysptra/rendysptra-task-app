@@ -1,7 +1,9 @@
 package com.rendysaptra.task.service.impl;
 
 import java.time.Instant;
+import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.rendysaptra.task.domain.CreateTaskRequest;
@@ -34,6 +36,11 @@ public class TaskServiceImpl implements TaskService {
             now
         );
         return taskRepository.save(task);
+    }
+
+    @Override
+    public List<Task> listTasks() {
+        return taskRepository.findAll(Sort.by(Sort.Direction.ASC, "created"));
     }
 
 }
