@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import com.rendysaptra.task.domain.CreateTaskRequest;
 import com.rendysaptra.task.domain.dto.CreateTaskRequestDto;
 import com.rendysaptra.task.domain.dto.TaskDto;
+import com.rendysaptra.task.domain.dto.UpdateTaskRequestDto;
 import com.rendysaptra.task.domain.entitty.Task;
 import com.rendysaptra.task.mapper.TaskMapper;
 
@@ -30,6 +31,17 @@ public class TaskMapperImpl implements TaskMapper {
             task.getDueDate(),
             task.getPriority(),
             task.getStatus()
+        );
+    }
+
+    @Override
+    public UpdateTaskRequestDto fromDto(UpdateTaskRequestDto dto) {
+        return new UpdateTaskRequestDto(
+            dto.title(),
+            dto.description(),
+            dto.dueDate(),
+            dto.priority(),
+            dto.status()
         );
     }
 }
