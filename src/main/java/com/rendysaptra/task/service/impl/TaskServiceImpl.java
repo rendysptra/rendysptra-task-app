@@ -2,13 +2,16 @@ package com.rendysaptra.task.service.impl;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.rendysaptra.task.domain.CreateTaskRequest;
+import com.rendysaptra.task.domain.UpdateTaskRequest;
 import com.rendysaptra.task.domain.entitty.Task;
 import com.rendysaptra.task.domain.entitty.TaskStatus;
+import com.rendysaptra.task.exception.TaskNotFoundException;
 import com.rendysaptra.task.repository.TaskRepository;
 import com.rendysaptra.task.service.TaskService;
 
@@ -43,4 +46,17 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findAll(Sort.by(Sort.Direction.ASC, "created"));
     }
 
+    @Override
+    public Task updateTask(UUID taskId, UpdateTaskRequest request) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setDueDate(request.dueDate());
+        task.setStatus(request.status());
+        task.setPriority(request.priority());
+        task.setUpdated(Instant.now());
+
+        return taskRepository.save(task);
+    }
 }
