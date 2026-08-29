@@ -17,8 +17,8 @@ public record CreateTaskRequestDto(
     @Length(max = 255, message = ERROR_MESSAGE_TITLE_LENGTH)
     String title,
 
-    @Nullable
     @Length(max = 1000, message= ERROR_MESSAGE_DESCRIPTION_LENGTH)
+    @Nullable
     String description,
 
     @FutureOrPresent(message = ERROR_MESSAGE_DUE_DATE)
