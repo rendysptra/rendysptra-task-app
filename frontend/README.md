@@ -1,24 +1,38 @@
-# Task App UI
+# frontend
 
-The user interface for the Devtiro Task App build. It's a React app, built with Vite and TypeScript.
+This template should help get you started developing with Vue 3 in Vite.
 
-**You don't need to run this directly.** From the repository root, `docker compose up` builds this
-into an image and runs it for you — no Node install required. See the root [README](../README.md).
+## Recommended IDE Setup
 
-## Running it directly
+[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
-If you'd rather run it without Docker, you'll need Node 20 or later:
+## Recommended Browser Setup
 
-```bash
+- Chromium-based browsers (Chrome, Edge, Brave, etc.):
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
+  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
+- Firefox:
+  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
+  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Project Setup
+
+```sh
 npm install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
 npm run dev
 ```
 
-It runs on http://localhost:3000 and proxies `/api` calls to the Spring Boot app on port 8080, which
-needs to be running.
+### Compile and Minify for Production
 
-## How it talks to the backend
-
-In the Docker image, nginx serves the built app and proxies `/api/` through to the backend. The host
-and port come from the `BACKEND_HOST` and `BACKEND_PORT` environment variables, which the
-`docker-compose.yml` at the repository root sets for you.
+```sh
+npm run build
+```
