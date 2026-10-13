@@ -9,19 +9,20 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.io.Decoders;
 import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret:mySecretKeyForJWTTokenGenerationAndValidation}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
     @Value("${jwt.expiration:86400000}")
     private long jwtExpirationMs;
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret.trim()));
     }
 
     public String generateToken(String email) {
