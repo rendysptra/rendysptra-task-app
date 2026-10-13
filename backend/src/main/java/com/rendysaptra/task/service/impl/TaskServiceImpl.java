@@ -33,7 +33,7 @@ public class TaskServiceImpl implements TaskService {
             request.title(),
             request.description(),
             request.dueDate(),
-            TaskStatus.OPEN,
+            TaskStatus.TODO,
             request.priority(),
             now,
             now
