@@ -180,6 +180,14 @@
                 </div>
               </div>
               <button
+                @click="openEditModal(task)"
+                class="edit-btn"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M11.5 2.5L13.5 4.5M2 14H4L12 6L10 4L2 12V14Z" stroke="#58745C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button
                 @click="deleteTask(task.id)"
                 class="delete-btn"
               >
@@ -210,6 +218,61 @@
         <span>Klik kotak di samping tugas untuk menandainya selesai.</span>
       </div>
     </main>
+
+    <!-- Edit Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>Edit Tugas</h3>
+          <button @click="closeEditModal" class="modal-close">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M15 5L5 15M5 5L15 15" stroke="#737B73" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="input-label">Judul</label>
+            <input
+              v-model="editingTask.title"
+              type="text"
+              placeholder="Judul tugas"
+              class="task-input"
+            />
+          </div>
+          <div class="form-group">
+            <label class="input-label">Deskripsi</label>
+            <textarea
+              v-model="editingTask.description"
+              placeholder="Deskripsi (opsional)"
+              class="task-description-input"
+              rows="2"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label class="input-label">Deadline</label>
+            <input
+              v-model="editingTask.dueDate"
+              type="date"
+              class="task-date-input"
+              :min="minDate"
+            />
+          </div>
+          <div class="form-group">
+            <label class="input-label">Prioritas</label>
+            <select v-model="editingTask.priority" class="task-priority-select">
+              <option value="LOW">Rendah</option>
+              <option value="MEDIUM">Sedang</option>
+              <option value="HIGH">Tinggi</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="closeEditModal" class="btn-cancel">Batal</button>
+          <button @click="saveEditTask" class="btn-save">Simpan</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -227,6 +290,8 @@ const tasks = ref([])
 const loading = ref(false)
 const newTask = ref({ title: '', description: '', dueDate: '', priority: 'MEDIUM' })
 const activeFilter = ref('all')
+const editingTask = ref(null)
+const showEditModal = ref(false)
 
 const minDate = computed(() => {
   const today = new Date()
@@ -364,6 +429,34 @@ const clearCompleted = async () => {
   const completedTasks = tasks.value.filter(t => t.status === 'DONE')
   for (const task of completedTasks) {
     await deleteTask(task.id)
+  }
+}
+
+const openEditModal = (task) => {
+  editingTask.value = { ...task }
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  editingTask.value = null
+  showEditModal.value = false
+}
+
+const saveEditTask = async () => {
+  if (!editingTask.value.title.trim()) return
+  
+  try {
+    await taskApi.updateTask(editingTask.value.id, {
+      title: editingTask.value.title,
+      description: editingTask.value.description || null,
+      dueDate: editingTask.value.dueDate || null,
+      priority: editingTask.value.priority,
+      status: editingTask.value.status
+    })
+    closeEditModal()
+    fetchTasks()
+  } catch (error) {
+    console.error('Error saving task:', error)
   }
 }
 
@@ -952,6 +1045,128 @@ onMounted(() => {
 
 .delete-btn:hover {
   color: #C96A2F;
+}
+
+.edit-btn {
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #58745C;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.edit-btn:hover {
+  color: #4a6250;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #E7DCC8;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #303A33;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #737B73;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #303A33;
+}
+
+.modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #E7DCC8;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background: #F0F4F1;
+  color: #58745C;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #E0E8E1;
+}
+
+.btn-save {
+  padding: 10px 20px;
+  background: #58745C;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+  background: #4a6250;
 }
 
 /* Tasks remaining */
