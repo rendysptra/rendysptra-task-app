@@ -78,31 +78,51 @@
       <div class="tasks-card">
         <!-- Add task section -->
         <div class="add-task-section">
-          <label>Tambah tugas baru</label>
+          <label class="section-label">Tambah tugas baru</label>
           <div class="add-task-input-group">
-            <input
-              v-model="newTask.title"
-              type="text"
-              placeholder="Apa yang ingin kamu kerjakan?"
-              class="task-input"
-            />
-            <input
-              v-model="newTask.dueDate"
-              type="date"
-              class="task-date-input"
-              :min="minDate"
-            />
-            <select v-model="newTask.priority" class="task-priority-select">
-              <option value="LOW">Rendah</option>
-              <option value="MEDIUM">Sedang</option>
-              <option value="HIGH">Tinggi</option>
-            </select>
-            <button @click="addTask" class="add-btn">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M9 3V15M3 9H15" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-              <span>Tambah</span>
-            </button>
+            <div class="form-group">
+              <label class="input-label">Judul</label>
+              <input
+                v-model="newTask.title"
+                type="text"
+                placeholder="Apa yang ingin kamu kerjakan?"
+                class="task-input"
+              />
+            </div>
+            <div class="form-group">
+              <label class="input-label">Deskripsi</label>
+              <textarea
+                v-model="newTask.description"
+                placeholder="Deskripsi (opsional)"
+                class="task-description-input"
+                rows="2"
+              ></textarea>
+            </div>
+            <div class="add-task-controls">
+              <div class="form-group">
+                <label class="input-label">Deadline</label>
+                <input
+                  v-model="newTask.dueDate"
+                  type="date"
+                  class="task-date-input"
+                  :min="minDate"
+                />
+              </div>
+              <div class="form-group">
+                <label class="input-label">Prioritas</label>
+                <select v-model="newTask.priority" class="task-priority-select">
+                  <option value="LOW">Rendah</option>
+                  <option value="MEDIUM">Sedang</option>
+                  <option value="HIGH">Tinggi</option>
+                </select>
+              </div>
+              <button @click="addTask" class="add-btn">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M9 3V15M3 9H15" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>Tambah</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -136,10 +156,29 @@
                 @change="updateTaskStatus(task.id, $event.target.checked ? 'DONE' : 'TODO')"
                 class="task-checkbox"
               />
-              <span class="task-text">{{ task.title }}</span>
-              <span :class="['task-status', getStatusClass(task.status)]">
-                {{ getStatusLabel(task.status) }}
-              </span>
+              <div class="task-content">
+                <div class="task-header">
+                  <span class="task-text">{{ task.title }}</span>
+                  <span :class="['task-priority', `priority-${task.priority}`]">
+                    {{ getPriorityLabel(task.priority) }}
+                  </span>
+                </div>
+                <div v-if="task.description" class="task-description">{{ task.description }}</div>
+                <div class="task-meta">
+                  <span v-if="task.dueDate" class="task-deadline">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <rect x="3" y="2" width="10" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                      <line x1="6" y1="1" x2="6" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      <line x1="10" y1="1" x2="10" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      <line x1="3" y1="5" x2="13" y2="5" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                    {{ formatDate(task.dueDate) }}
+                  </span>
+                  <span :class="['task-status', getStatusClass(task.status)]">
+                    {{ getStatusLabel(task.status) }}
+                  </span>
+                </div>
+              </div>
               <button
                 @click="deleteTask(task.id)"
                 class="delete-btn"
@@ -186,7 +225,7 @@ const authStore = useAuthStore()
 
 const tasks = ref([])
 const loading = ref(false)
-const newTask = ref({ title: '', dueDate: '', priority: 'MEDIUM' })
+const newTask = ref({ title: '', description: '', dueDate: '', priority: 'MEDIUM' })
 const activeFilter = ref('all')
 
 const minDate = computed(() => {
@@ -242,6 +281,31 @@ const getStatusLabel = (status) => {
   return status === 'DONE' ? 'Selesai' : 'Belum selesai'
 }
 
+const getPriorityLabel = (priority) => {
+  const labels = {
+    'LOW': 'Rendah',
+    'MEDIUM': 'Sedang',
+    'HIGH': 'Tinggi'
+  }
+  return labels[priority] || priority
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  
+  if (taskDate.getTime() === today.getTime()) return 'Hari ini'
+  if (taskDate.getTime() === tomorrow.getTime()) return 'Besok'
+  
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+  return `${date.getDate()} ${months[date.getMonth()]}`
+}
+
 const fetchTasks = async () => {
   loading.value = true
   try {
@@ -260,12 +324,12 @@ const addTask = async () => {
   try {
     await taskApi.createTask({
       title: newTask.value.title,
-      description: null,
+      description: newTask.value.description || null,
       dueDate: newTask.value.dueDate || null,
       priority: newTask.value.priority,
       status: 'TODO'
     })
-    newTask.value = { title: '', dueDate: '', priority: 'MEDIUM' }
+    newTask.value = { title: '', description: '', dueDate: '', priority: 'MEDIUM' }
     fetchTasks()
   } catch (error) {
     console.error('Error adding task:', error)
@@ -325,7 +389,8 @@ onMounted(() => {
   min-height: 100dvh;
   background: #FFF7E8;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Mascot decorations */
@@ -498,10 +563,34 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
+.section-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #303A33;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #58745C;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .add-task-input-group {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .task-input {
@@ -524,6 +613,42 @@ onMounted(() => {
   outline: none;
   border-color: #58745C;
   background: white;
+}
+
+.task-description-input {
+  width: 100%;
+  height: auto;
+  min-height: 60px;
+  padding: 12px 16px;
+  background: #FFF8E8;
+  border: 1px solid #E7DCC8;
+  border-radius: 14px;
+  font-size: 13px;
+  color: #303A33;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.task-description-input::placeholder {
+  color: #949A93;
+}
+
+.task-description-input:focus {
+  outline: none;
+  border-color: #58745C;
+  background: white;
+}
+
+.add-task-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.add-task-controls .form-group {
+  flex: 1;
+  min-width: 100px;
 }
 
 .task-date-input,
@@ -638,13 +763,13 @@ onMounted(() => {
 
 .task-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   padding: 24px;
   border-bottom: 1px solid #E7DCC8;
   background: #FFF8E8;
   transition: all 0.2s ease;
-  min-height: 72px;
+  min-height: auto;
 }
 
 .task-item.completed {
@@ -665,6 +790,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 2px;
 }
 
 .task-checkbox::before {
@@ -708,10 +834,23 @@ onMounted(() => {
   line-height: 1;
 }
 
-.task-text {
+.task-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.task-text {
   font-size: 15px;
-  font-weight: 400;
+  font-weight: 500;
   color: #303A33;
   line-height: 1.5;
   word-break: break-word;
@@ -722,11 +861,68 @@ onMounted(() => {
   text-decoration: line-through;
 }
 
-.task-status {
-  padding: 5px 10px;
-  border-radius: 100px;
-  font-size: 12px;
+.task-priority {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.task-priority.priority-HIGH {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.task-priority.priority-MEDIUM {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.task-priority.priority-LOW {
+  background: #DBEAFE;
+  color: #0369A1;
+}
+
+.task-description {
+  font-size: 13px;
   font-weight: 400;
+  color: #737B73;
+  line-height: 1.4;
+}
+
+.task-item.completed .task-description {
+  color: #949A93;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.task-deadline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #F0F4F1;
+  border-radius: 6px;
+  color: #737B73;
+}
+
+.task-item.completed .task-deadline {
+  color: #949A93;
+}
+
+.task-status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -840,9 +1036,17 @@ onMounted(() => {
     flex-direction: column;
   }
 
+  .add-task-controls {
+    flex-direction: column;
+  }
+
   .add-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .task-description-input {
+    min-height: 60px;
   }
 
   .filter-tabs {
